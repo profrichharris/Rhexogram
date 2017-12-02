@@ -71,7 +71,7 @@ shift <- function(sppoly, hex, trials) {
 
 
 
-hex2sphex <- function(hex, df = NULL) {
+hex2sphex <- function(hex) {
   
   x <- hex
   
@@ -89,16 +89,12 @@ hex2sphex <- function(hex, df = NULL) {
     sp::Polygons(list(poly), ID=i)
   })
   sphex <- sp::SpatialPolygons(polys)
-  
-  if(!is.null(df)) sphex <- sp::SpatialPolygonsDataFrame(sphex, df,
-                                                     match.ID = FALSE)
-  
   return(sphex)
   
 }
 
 
-hexogram <- function(sppoly, bins = 45, maxSizeError = 1.5,
+hexogram <- function(sppoly, bins = 45, maxSizeError = 1.25,
                      binsmax = bins + 10, trials = 500,
                      set.seed = 101) {
   
@@ -173,21 +169,11 @@ hexogram <- function(sppoly, bins = 45, maxSizeError = 1.5,
   }
   
   hbins <- hex[[4]]
-  kn <- hex[[5]]
-  ord <- order(kn)
-  hbins$x <- hbins$x[ord]
-  hbins$xcm <- hbins$xcm[ord]
-  hbins$y <- hbins$y[ord]
-  hbins$ycm <- hbins$ycm[ord]
-  hbins$z <- hbins$z[ord]
-  hbins$data <- hbins$data[ord,]
-  
-  if(class(las) == "SpatialPolygonsDataFrame") {
-    sphex <- hex2sphex(hbins, data.frame(sppoly))
-  } else {
-    sphex <- hex2sphex(hbins)
-  }
-  return(list(carto, sphex))
+  kn <- hex[[5]][,1]
+
+  sphex <- hex2sphex(hbins)
+  sphex <- sphex[kn,]
+  return(list(carto, sphex, kn))
   
 }
 
