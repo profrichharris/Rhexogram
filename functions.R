@@ -173,7 +173,7 @@ hexogram <- function(sppoly, bins = 45, maxSizeError = 1.25,
 
   sphex <- hex2sphex(hbins)
   sphex <- sphex[kn,]
-  return(list(carto, sphex, kn))
+  return(list(carto, sphex))
   
 }
 
