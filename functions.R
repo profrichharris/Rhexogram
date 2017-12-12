@@ -213,9 +213,9 @@ reallocate <- function(map, hexoutput,
   ry = diff(unique(sort(Y)))
   ry <- min(ry[ry > 0.001])  
   
-  D <- RANN::nn2(pts.hex, pts.hex, k=2)
-  D <- D$nn.dists[,2]
-  D <- max(c(rx, ry))
+# D <- RANN::nn2(pts.hex, pts.hex, k=2)
+#  D <- D$nn.dists[,2]
+  D <- 1.1*max(c(rx, ry))
   
   dists <- RANN::nn2(pts.hex, pts.map, k=1)
   subset <- dists$nn.dists > D
