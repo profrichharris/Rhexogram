@@ -213,25 +213,36 @@ reallocate <- function(map, hexoutput,
   ry = diff(unique(sort(Y)))
   ry <- min(ry[ry > 0.001])  
   
-  D <- max(c(rx, ry))
+  D <- sqrt(rx^2 + ry^2)
   
   dists <- RANN::nn2(pts.hex, pts.map, k=1)
-  subset <- dists$nn.dists > 1.1*D
+  subset <- dists$nn.dists > 1*D
+  dists <- RANN::nn2(pts.hex, pts.hex, k=2)
+  subset2 <- dists$nn.dists[,2] > 1*D
+  subset <- subset * subset2
+  subset <- as.logical(subset)
   
   pts.new <- pts.hex
   pts.new[subset,] <- pts.map[subset,]
   
   if(length(subset[subset]) > 1) {
     pts <- pts.map[subset,]
-    clashes <- RANN::nn2(pts.new, pts, k=2)$nn.dists[,2] < 1.5*D
+    clashes <- RANN::nn2(pts.new, pts, k=2)$nn.dists[,2] < 1.2*D
     tries <- 0
     pts.bak <- pts
-    while(length(clashes[clashes]) > 0 & tries <= maxtrials) {
+    k <- 0.1
+    nlast <- length(clashes[clashes])
+    while(length(clashes[clashes]) > 0) {
+      pts[clashes] <- pts.bak[clashes]
       tries <- tries + 1
-      if(tries > maxtrials) stop("No solution found")
-      pts[clashes] <- jitter(pts[clashes], amount = 1.5*D)
-      clashes <- RANN::nn2(pts.new, pts, k=2)$nn.dists[,2] < 1.5*D
-      pts <- pts.bak
+#     if(tries > maxtrials) stop("No solution found")
+      pts[clashes] <- jitter(pts[clashes], amount = k*D)
+      clashes <- RANN::nn2(pts.new, pts, k=2)$nn.dists[,2] < 1.2*D
+      if(length(clashes[clashes]) >= nlast & tries >= maxtrials){
+        k <- k + 0.1
+        tries <- 0
+      }
+      nlast <- length(clashes[clashes])
     }
     pts.new[subset] <- pts
   }
