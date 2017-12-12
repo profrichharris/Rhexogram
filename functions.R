@@ -227,11 +227,13 @@ reallocate <- function(map, hexoutput,
     pts <- pts.map[subset,]
     clashes <- RANN::nn2(pts.new, pts, k=2)$nn.dists[,2] < D
     tries <- 0
+    pts.bak <- pts
     while(length(clashes[clashes]) > 0 & tries <= maxtrials) {
       tries <- tries + 1
       if(tries > maxtrials) stop("No solution found")
       pts[clashes] <- jitter(pts[clashes], amount = D)
       clashes <- RANN::nn2(pts.new, pts, k=2)$nn.dists[,2] < D
+      pts <- pts.bak
     }
     pts.new[subset] <- pts
   }
