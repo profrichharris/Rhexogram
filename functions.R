@@ -199,7 +199,7 @@ binN <- function(sppoly, bin.max = 65) {
 
 
 reallocate <- function(map, hexoutput,
-                       maxtrials = 1000, set.seed=102) {
+                       maxtrials = 10000, set.seed=102) {
   
   if(!is.null(set.seed)) set.seed(set.seed)
   
@@ -213,8 +213,6 @@ reallocate <- function(map, hexoutput,
   ry = diff(unique(sort(Y)))
   ry <- min(ry[ry > 0.001])  
   
-# D <- RANN::nn2(pts.hex, pts.hex, k=2)
-#  D <- D$nn.dists[,2]
   D <- max(c(rx, ry))
   
   dists <- RANN::nn2(pts.hex, pts.map, k=1)
