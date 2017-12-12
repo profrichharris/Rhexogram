@@ -218,7 +218,7 @@ reallocate <- function(map, hexoutput,
   D <- max(c(rx, ry))
   
   dists <- RANN::nn2(pts.hex, pts.map, k=1)
-  subset <- dists$nn.dists > 1.1D
+  subset <- dists$nn.dists > 1.1*D
   
   pts.new <- pts.hex
   pts.new[subset,] <- pts.map[subset,]
