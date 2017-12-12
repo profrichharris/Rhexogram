@@ -215,24 +215,24 @@ reallocate <- function(map, hexoutput,
   
 # D <- RANN::nn2(pts.hex, pts.hex, k=2)
 #  D <- D$nn.dists[,2]
-  D <- 1.1*max(c(rx, ry))
+  D <- max(c(rx, ry))
   
   dists <- RANN::nn2(pts.hex, pts.map, k=1)
-  subset <- dists$nn.dists > D
+  subset <- dists$nn.dists > 1.1D
   
   pts.new <- pts.hex
   pts.new[subset,] <- pts.map[subset,]
   
   if(length(subset[subset]) > 1) {
     pts <- pts.map[subset,]
-    clashes <- RANN::nn2(pts.new, pts, k=2)$nn.dists[,2] < D
+    clashes <- RANN::nn2(pts.new, pts, k=2)$nn.dists[,2] < 1.5*D
     tries <- 0
     pts.bak <- pts
     while(length(clashes[clashes]) > 0 & tries <= maxtrials) {
       tries <- tries + 1
       if(tries > maxtrials) stop("No solution found")
-      pts[clashes] <- jitter(pts[clashes], amount = D)
-      clashes <- RANN::nn2(pts.new, pts, k=2)$nn.dists[,2] < D
+      pts[clashes] <- jitter(pts[clashes], amount = 1.5*D)
+      clashes <- RANN::nn2(pts.new, pts, k=2)$nn.dists[,2] < 1.5*D
       pts <- pts.bak
     }
     pts.new[subset] <- pts
