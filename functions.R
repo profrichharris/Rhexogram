@@ -197,3 +197,61 @@ binN <- function(sppoly, bin.max = 65) {
   
 }
 
+
+reallocate <- function(map, hexoutput,
+                       maxtrials = 1000, set.seed=102) {
+  
+  if(!is.null(set.seed)) set.seed(set.seed)
+  
+  pts.hex <- sp::coordinates(hexoutput[[2]])
+  pts.map <- sp::coordinates(map)
+  
+  X = pts.hex[,1]
+  Y = pts.hex[,2]
+  rx = diff(unique(sort(X)))
+  rx <- min(rx[rx > 0.001])
+  ry = diff(unique(sort(Y)))
+  ry <- min(ry[ry > 0.001])  
+  
+  D <- RANN::nn2(pts.hex, pts.hex, k=2)
+  D <- D$nn.dists[,2]
+  D <- 1.2*min(D)
+  
+  dists <- RANN::nn2(pts.hex, pts.map, k=1)
+  subset <- dists$nn.dists > D
+  
+  pts.new <- pts.hex
+  pts.new[subset,] <- pts.map[subset,]
+  
+  if(length(subset[subset]) > 1) {
+    pts <- pts.map[subset,]
+    clashes <- RANN::nn2(pts.new, pts, k=2)$nn.dists[,2] < D
+    tries <- 0
+    pts.bak <- pts
+    while(length(clashes[clashes]) > 0 & tries <= maxtrials) {
+      pts <- pts.bak
+      tries <- tries + 1
+      if(tries > maxtrials) stop("No solution found")
+      pts[clashes] <- jitter(pts[clashes], amount = D)
+      clashes <- RANN::nn2(pts.new, pts, k=2)$nn.dists[,2] < D
+    }
+  }
+  
+  pts.new[subset] <- pts
+  
+  X <- pts.new[,1]
+  Y <- pts.new[,2]
+  rt = 2 * ry
+  u = c(rx, 0, -rx, -rx, 0, rx)
+  v = c(ry, rt, ry, -ry, -rt, -ry)/3
+  
+  polys <- lapply(1:length(X), function(i) {
+    coords <- cbind(u + X[i], v + Y[i])
+    poly <- sp::Polygon(coords)
+    sp::Polygons(list(poly), ID=i)
+  })
+  sppolys <- sp::SpatialPolygons(polys)
+  return(sppolys)
+  
+}
+
