@@ -233,9 +233,8 @@ reallocate <- function(map, hexoutput,
       pts[clashes] <- jitter(pts[clashes], amount = D)
       clashes <- RANN::nn2(pts.new, pts, k=2)$nn.dists[,2] < D
     }
+    pts.new[subset] <- pts
   }
-  
-  pts.new[subset] <- pts
   
   X <- pts.new[,1]
   Y <- pts.new[,2]
