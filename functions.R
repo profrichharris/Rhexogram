@@ -215,7 +215,7 @@ reallocate <- function(map, hexoutput,
   
   D <- RANN::nn2(pts.hex, pts.hex, k=2)
   D <- D$nn.dists[,2]
-  D <- 1.5*min(D)
+  D <- 2*min(D)
   
   dists <- RANN::nn2(pts.hex, pts.map, k=1)
   subset <- dists$nn.dists > D
