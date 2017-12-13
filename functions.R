@@ -197,11 +197,7 @@ binN <- function(sppoly, bin.max = 65) {
   
 }
 
-
-reallocate <- function(map, hexoutput,
-                       maxtrials = 10000, set.seed=102) {
-  
-  if(!is.null(set.seed)) set.seed(set.seed)
+reallocate <- function(map, hexoutput) {
   
   pts.hex <- sp::coordinates(hexoutput[[2]])
   pts.map <- sp::coordinates(map)
@@ -215,40 +211,48 @@ reallocate <- function(map, hexoutput,
   
   D <- sqrt(rx^2 + ry^2)
   
-  dists <- RANN::nn2(pts.hex, pts.map, k=1)
-  subset <- dists$nn.dists > 1*D
-  dists <- RANN::nn2(pts.hex, pts.hex, k=2)
-  subset2 <- dists$nn.dists[,2] > 1*D
-  subset <- subset * subset2
-  subset <- as.logical(subset)
+  xx <- pts.map[,1] - pts.hex[,1]
+  yy <- pts.map[,2] - pts.hex[,2]
+  xsign <- sign(xx)
+  ysign <- sign(yy)
+  xx <- abs(xx)
+  yy <- abs(yy)
+  dd <- sqrt(xx^2 + yy^2)
   
-  pts.new <- pts.hex
-  pts.new[subset,] <- pts.map[subset,]
+  saved <- rep(FALSE, nrow(pts.save))
+  pts.bak <- pts.hex
+  pts.save <- pts.hex
   
-  if(length(subset[subset]) > 1) {
-    pts <- pts.map[subset,]
-    clashes <- RANN::nn2(pts.new, pts, k=2)$nn.dists[,2] < 1.2*D
-    tries <- 0
-    pts.bak <- pts
-    k <- 0.1
-    nlast <- length(clashes[clashes])
-    while(length(clashes[clashes]) > 0) {
-      pts[clashes] <- pts.bak[clashes]
-      tries <- tries + 1
-#     if(tries > maxtrials) stop("No solution found")
-      pts[clashes] <- jitter(pts[clashes], amount = k*D)
-      clashes <- RANN::nn2(pts.new, pts, k=2)$nn.dists[,2] < 1.2*D
-      if(length(clashes[clashes]) >= nlast & tries >= maxtrials){
-        k <- k + 0.1
-        tries <- 0
+  for(i in seq(1,0.1,by=-0.05)) {
+    
+    theta <- atan(xx/yy)
+    xx <- sin(theta) * i *dd
+    yy <- cos(theta) * i *dd
+    
+    pts.try <- pts.bak
+    pts.try[,1] <- pts.try[,1] + xsign * xx
+    pts.try[,2] <- pts.try[,2] + ysign * yy
+    
+    subset <- !complete.cases(pts.try)
+    pts.try[subset,] <- pts.bak[subset,]
+    
+    for(i in 1:n) {
+      pts.hex <- pts.save
+      pts.hex[i,] <- pts.try[i,] 
+      qry <- cbind(pts.hex[i,1], pts.hex[i,2])
+      if(RANN::nn2(pts.hex, qry, k=2)$nn.dists[,2] > D) {
+        if(!saved[i]) {
+          saved[i] <- TRUE
+          pts.save[i,] <- pts.try[i,]
+        }
       }
-      nlast <- length(clashes[clashes])
     }
-    pts.new[subset] <- pts
+    
   }
   
-  X <- pts.new[,1]
-  Y <- pts.new[,2]
+  
+  X <- pts.save[,1]
+  Y <- pts.save[,2]
   rt = 2 * ry
   u = c(rx, 0, -rx, -rx, 0, rx)
   v = c(ry, rt, ry, -ry, -rt, -ry)/3
@@ -262,4 +266,3 @@ reallocate <- function(map, hexoutput,
   return(sppolys)
   
 }
-
