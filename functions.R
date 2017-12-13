@@ -219,7 +219,8 @@ reallocate <- function(map, hexoutput) {
   yy <- abs(yy)
   dd <- sqrt(xx^2 + yy^2)
   
-  saved <- rep(FALSE, nrow(pts.map))
+  n <- nrow(pts.map)
+  saved <- rep(FALSE, n)
   pts.bak <- pts.hex
   pts.save <- pts.hex
   
