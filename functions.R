@@ -184,7 +184,7 @@ binN <- function(sppoly, bin.max = 65) {
   y <- sapply(x, function(bins) {
     hexconflicts(sppoly, bins)[[1]]
   })
-  N <- nrow(sppoly)
+  N <- length(sppoly)
   py <- y/N
   plot(x, py, xlab = "bins", ylab = "% areas conflicted", type="l", las=1)
   lo <- loess(y ~ x)
